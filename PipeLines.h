@@ -12,7 +12,7 @@ static std::string CreateAppSinkPipeline()
 
     pipelineString
 #ifdef TEST_RTSP
-        << "rtsp://admin:M60090904@172.16.1.82:554/"
+        << "rtsp://192.168.31.163:554/"
         << LINK
 #elif defined TEST_VIDEO
         << "filesrc location=/usr/local/test.mp4"
