@@ -15,6 +15,7 @@
 #define _OPENCV_EFFECT_H
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/ocl/ocl.hpp>
 
 class OpenCVEffect {
 public:

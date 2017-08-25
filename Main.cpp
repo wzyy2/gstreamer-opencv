@@ -1,4 +1,4 @@
-#include "gst_opencv.h"
+#include "Common.h"
 
 #include "OpenCVStream.h"
 

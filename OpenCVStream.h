@@ -14,7 +14,7 @@
 #ifndef _OPENCV_APPSINK_H
 #define _OPENCV_APPSINK_H
 
-#include "gst_opencv.h"
+#include "Common.h"
 
 class OpenCVStream{
 public:

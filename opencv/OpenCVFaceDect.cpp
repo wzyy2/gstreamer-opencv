@@ -18,6 +18,8 @@ using namespace cv;
 OpenCVFaceDect::OpenCVFaceDect()
 {
     scale__ = 16;
+
+    ocl::setBinaryPath("./blobs/");
 }
 
 OpenCVFaceDect::~OpenCVFaceDect()
@@ -26,15 +28,18 @@ OpenCVFaceDect::~OpenCVFaceDect()
 
 void OpenCVFaceDect::Initialize(std::string cascade_path)
 {
-    cascade__.load(cascade_path);
+    if (!cascade__.load(cascade_path)) {
+        std::cout << "ERROR: Load cascade failed" << std::endl;
+    }
 }
 
 void OpenCVFaceDect::Process(void* framebuffer, int width, int height)
 {
     std::vector<Rect> faces;
-    int i;
+    double t = (double)cvGetTickCount();
     Mat frame(height, width, CV_8UC3, (char*)framebuffer, Mat::AUTO_STEP);
     Mat gray, smallImg(cvRound(frame.rows / scale__), cvRound(frame.cols / scale__), CV_8UC1);
+    int i;
 
     const static Scalar colors[] = { CV_RGB(0, 0, 255),
         CV_RGB(0, 128, 255),
@@ -49,7 +54,12 @@ void OpenCVFaceDect::Process(void* framebuffer, int width, int height)
     resize(gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR);
     equalizeHist(smallImg, smallImg);
 
-    cascade__.detectMultiScale(smallImg, faces);
+    cascade__.detectMultiScale(smallImg, faces, 1.1,
+        2, 0 | CV_HAAR_SCALE_IMAGE, Size(10, 10), Size(0, 0));
+
+    t = (double)cvGetTickCount() - t;
+    printf("detection time = %g ms\n", t / ((double)cvGetTickFrequency() * 1000.));
+
     for (std::vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++) {
         std::vector<Rect> nestedObjects;
         Point center;
