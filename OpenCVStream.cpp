@@ -12,13 +12,20 @@
  */
 
 #include "OpenCVStream.h"
-#include "pipelines.h"
+#include "PipeLines.h"
 
 #include <sstream>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 
 OpenCVStream::OpenCVStream()
 {
     is_streaming__ = false;
+
+    OpenCVFaceDect* face_dect = new OpenCVFaceDect();
+    face_dect->Initialize("./blobs/haarcascade_frontalface_alt.xml");
+
+    effect_lists.push_back(face_dect);
 }
 
 OpenCVStream::~OpenCVStream()
@@ -51,7 +58,6 @@ void OpenCVStream::StreamON()
 
 void OpenCVStream::StreamOFF()
 {
-    int i = 0;
     boost::lock_guard<boost::mutex> guard(state_mutex__);
 
     if (!is_streaming__) {
@@ -70,25 +76,45 @@ void OpenCVStream::StreamOFF()
 void OpenCVStream::Process()
 {
     GstSample* sample;
-    int height, width;
+    GstMapInfo map;
+    GstStructure* s;
+    GstBuffer* buffer;
+    GstCaps* caps;
+    GstMemory* mem;
+    int height, width, size;
+    int fd;
+    void* map_data;
 
     while (is_streaming__) {
         if (sink_pipeline__->GetIsNewFrameAvailable()) {
             sink_pipeline__->GetLatestSample(&sample);
-            GstCaps* caps = gst_sample_get_caps(sample);
-            GstBuffer* buffer = gst_sample_get_buffer(sample);
+            caps = gst_sample_get_caps(sample);
+            buffer = gst_sample_get_buffer(sample);
+            s = gst_caps_get_structure(caps, 0);
+            gst_structure_get_int(s, "height", &height);
+            gst_structure_get_int(s, "width", &width);
 
-            // GstMemory *mem = gst_buffer_peek_memory (buffer, 0);
-            // if (!gst_is_dmabuf_memory(mem)) {
-            //     printf("dsadsasdadadsasdas\n");
-            // } else {
-            //     printf("gst_is_dmabuf_memory\n");
-            // }
-            // while(1);
             // will auto released
             gst_buffer_ref(buffer);
-            src_pipeline__->SendBUF(buffer);
 
+            size = gst_buffer_get_size(buffer);
+            // Since gstreamer don't support map buffer to write,
+            // we have to use mmap directly
+            mem = gst_buffer_peek_memory(buffer, 0);
+            fd = gst_dmabuf_memory_get_fd(mem);
+            map_data = mmap64(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+            std::list<OpenCVEffect*>::iterator itor = effect_lists.begin();
+            while (itor != effect_lists.end()) {
+                // assume BGR
+                (*itor)->Process((void*)map_data, width, height);
+                itor++;
+            }
+
+            munmap(map_data, size);
+
+            src_pipeline__->SendBUF(buffer);
+            //g_print("%s\n", gst_caps_to_string(caps));
         } else {
             sink_pipeline__->ReleaseFrameBuffer();
         }

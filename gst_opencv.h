@@ -12,8 +12,11 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "gst-wrapper/GstAppSinkPipeline.h"
-#include "gst-wrapper/GstAppSrcPipeline.h"
-#include "gst-wrapper/GstreamerPipelines.h"
+#include "gst/GstAppSinkPipeline.h"
+#include "gst/GstAppSrcPipeline.h"
+#include "gst/GstreamerPipelines.h"
+
+#include "opencv/OpenCVFaceDect.h"
+#include "opencv/OpenCVEffect.h"
 
 #endif

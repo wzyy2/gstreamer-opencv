@@ -24,10 +24,12 @@ GstAppSinkPipeline::GstAppSinkPipeline()
     , currentBuffer(0)
     , is_streaming_(true)
 {
+
 }
 
 GstAppSinkPipeline::~GstAppSinkPipeline()
 {
+
 }
 
 void GstAppSinkPipeline::Initialize(std::string pipelineString)
@@ -49,6 +51,7 @@ void GstAppSinkPipeline::Initialize(std::string pipelineString)
 
 void GstAppSinkPipeline::EndOfStreamCallback(GstAppSink* appsink, gpointer user_data)
 {
+    
 }
 
 GstFlowReturn GstAppSinkPipeline::NewPrerollCallback(GstAppSink* appsink, gpointer user_data)
@@ -63,6 +66,7 @@ GstFlowReturn GstAppSinkPipeline::NewSampleCallback(GstAppSink* appsink, gpointe
     ((GstAppSinkPipeline*)user_data)->ReceiveNewSample();
     return GST_FLOW_OK;
 }
+
 void GstAppSinkPipeline::DestroyCallback(gpointer user_data)
 {
     std::cout << "DESTROY" << std::endl;

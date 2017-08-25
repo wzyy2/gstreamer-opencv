@@ -11,28 +11,26 @@
  * SOFTWARE.
  */
 
-#ifndef _OPENCV_APPSINK_H
-#define _OPENCV_APPSINK_H
+#ifndef _OPENCV_EFFECT_H
+#define _OPENCV_EFFECT_H
 
-#include "gst_opencv.h"
+#include <opencv2/opencv.hpp>
 
-class OpenCVStream{
+class OpenCVEffect {
 public:
-    OpenCVStream();
-    ~OpenCVStream();
+    OpenCVEffect() {
 
-    void StreamON();
-    void StreamOFF();
+    };
 
-    void Process();
+    ~OpenCVEffect() {
+
+    };
+
+    virtual void Process(void *framebuffer, int width, int height) {
+        
+    };
+
 private:
-    bool is_streaming__;
-    GstAppSinkPipeline *sink_pipeline__;
-    GstAppSrcPipeline *src_pipeline__;
-    boost::thread process_thread__;
-    boost::mutex state_mutex__;
-
-    std::list<OpenCVEffect *> effect_lists;
 };
 
 #endif

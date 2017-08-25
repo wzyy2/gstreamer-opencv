@@ -11,28 +11,28 @@
  * SOFTWARE.
  */
 
-#ifndef _OPENCV_APPSINK_H
-#define _OPENCV_APPSINK_H
+#ifndef _OPENCV_FACEDECT_H
+#define _OPENCV_FACEDECT_H
 
-#include "gst_opencv.h"
+#include "OpenCVEffect.h"
 
-class OpenCVStream{
+#include "opencv2/contrib/contrib.hpp"
+#include "opencv2/core/core.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/objdetect/objdetect.hpp"
+
+class OpenCVFaceDect : public OpenCVEffect {
 public:
-    OpenCVStream();
-    ~OpenCVStream();
+    OpenCVFaceDect();
+    ~OpenCVFaceDect();
 
-    void StreamON();
-    void StreamOFF();
+    void Initialize(std::string cascade_path);
+    void Process(void* framebuffer, int width, int height);
 
-    void Process();
 private:
-    bool is_streaming__;
-    GstAppSinkPipeline *sink_pipeline__;
-    GstAppSrcPipeline *src_pipeline__;
-    boost::thread process_thread__;
-    boost::mutex state_mutex__;
-
-    std::list<OpenCVEffect *> effect_lists;
+    cv::CascadeClassifier cascade__;
+    double scale__;
 };
 
 #endif

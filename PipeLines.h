@@ -2,10 +2,10 @@
 #define _PIPELINE_H
 
 #define TEST_VIDEO
-// #define TEST_RTSP
-// #define TEST_CAMERA
+//#define TEST_RTSP
+//#define TEST_CAMERA
 
-#ifndef  TEST_CAMERA
+#ifndef TEST_CAMERA
 static std::string CreateAppSinkPipeline()
 {
     std::stringstream pipelineString;
@@ -24,13 +24,14 @@ static std::string CreateAppSinkPipeline()
         << LINK
         << "mppvideodec"
         << LINK
+        << "video/x-raw,format=(string)NV12"
+        << LINK
         << "v4l2video0convert output-io-mode=dmabuf capture-io-mode=dmabuf"
         << LINK
-        << "video/x-raw,format=RGB,width=1920,height=1080"
+        << "video/x-raw,format=BGR,width=(int)1920,height=(int)1080"
         << LINK
-        << "queue"
-        << LINK
-        << "appsink name=" << APPSINK_NAME;
+        << "appsink caps=video/x-raw,format=BGR name="
+        << APPSINK_NAME;
 
     return pipelineString.str();
 }
@@ -40,15 +41,16 @@ static std::string CreateAppSinkPipeline()
     std::stringstream pipelineString;
 
     pipelineString
-        << "v4l2src device=/dev/video1 io-mode=4"
+        << "v4l2src device=/dev/video1"
         << LINK
         << "mppvideodec"
         << LINK
         << "v4l2video0convert output-io-mode=dmabuf capture-io-mode=dmabuf"
         << LINK
-        << "video/x-raw,format=RGB,width=1920,height=1080"
+        << "video/x-raw,format=(string)BGR,width=(int)1920,height=(int)1080,framerate=(fraction)30/1"
         << LINK
-        << "appsink name=" << APPSINK_NAME;
+        << "appsink name="
+        << APPSINK_NAME;
 
     return pipelineString.str();
 }
@@ -59,11 +61,11 @@ static std::string CreateAppSrcPipeline()
     std::stringstream pipelineString;
 
     pipelineString
-	<< "appsrc name=" << APPSRC_NAME << " block=true" 
+        << "appsrc caps=video/x-raw,format=(string)BGR,width=(int)1920,height=(int)1080,framerate=(fraction)30/1 "
+           "block=true name="
+        << APPSRC_NAME
         << LINK
-        << "video/x-raw,format=(string)RGB,width=(int)1920,height=(int)1080,framerate=(fraction)30/1"
-        << LINK
-        << "rkximagesink";
+        << "rkximagesink sync=false";
 
     return pipelineString.str();
 }

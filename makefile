@@ -1,5 +1,8 @@
-GST_FLAGS=$(shell pkg-config --cflags --libs gstreamer-1.0)
+#CXX=g++
+CXX=arm-linux-gnueabihf-g++
+#export PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH
 
+GST_FLAGS=$(shell pkg-config --cflags --libs gstreamer-1.0)
 OPENCV_FLAGS=$(shell pkg-config --cflags --libs opencv)
 
 CFLAGS = $(GST_FLAGS) $(OPENCV_FLAGS)
@@ -23,10 +26,10 @@ CPPOBJS	:= $(CPPSRCS:.cpp=.o)
 all: gst_opencv
 
 gst_opencv: $(CPPOBJS)
-	g++ $(CFLAGS) $(CPPOBJS) -o gst_opencv $(LIBS)
+	$(CXX) $(CFLAGS) $(CPPOBJS) -o gst_opencv $(LIBS)
 
 $(CPPOBJS) : %.o : %.cpp
-	g++ $(CFLAGS) -c $< -o $@
+	$(CXX) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f gst_opencv
+	rm -f opencv/*.o gst/*.o *.o gst_opencv
