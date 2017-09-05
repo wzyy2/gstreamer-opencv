@@ -17,7 +17,7 @@ using namespace cv;
 
 OpenCVFaceDect::OpenCVFaceDect()
 {
-    scale__ = 16;
+    scale__ = 8;
 
     ocl::setBinaryPath("./blobs/");
 }
@@ -33,12 +33,49 @@ void OpenCVFaceDect::Initialize(std::string cascade_path)
     }
 }
 
-void OpenCVFaceDect::Process(void* framebuffer, int width, int height)
+void OpenCVFaceDect::Update(std::vector<Rect> &faces)
 {
+    boost::lock_guard<boost::mutex> guard(face_mutex__);
+    last_face__ = faces;
+}
+
+void OpenCVFaceDect::Run()
+{
+    boost::lock_guard<boost::mutex> guard(thread_mutex__);
+    Mat smallImg(cvRound(gray__.rows / scale__), cvRound(gray__.cols / scale__), CV_8UC1);
     std::vector<Rect> faces;
     double t = (double)cvGetTickCount();
+
+    // scale to small picture
+    resize(gray__, smallImg, smallImg.size(), 0, 0, INTER_LINEAR);
+    equalizeHist(smallImg, smallImg);
+
+    cascade__.detectMultiScale(smallImg, faces, 1.1,
+        1, 0 | CV_HAAR_SCALE_IMAGE, Size(10, 10), Size(0, 0));
+
+    t = (double)cvGetTickCount() - t;
+    printf("detection time = %g ms\n", t / ((double)cvGetTickFrequency() * 1000.));
+
+    Update(faces);
+}
+
+void OpenCVFaceDect::Process(void* framebuffer, int width, int height)
+{
     Mat frame(height, width, CV_8UC3, (char*)framebuffer, Mat::AUTO_STEP);
-    Mat gray, smallImg(cvRound(frame.rows / scale__), cvRound(frame.cols / scale__), CV_8UC1);
+
+    if(thread_mutex__.try_lock()) {
+        cvtColor(frame, gray__, CV_BGR2GRAY);
+        process_thread__ = boost::thread(&OpenCVFaceDect::Run, this);
+        thread_mutex__.unlock();
+    }
+
+    Draw(framebuffer, width, height);
+}
+
+void OpenCVFaceDect::Draw(void *framebuffer, int width, int height)
+{
+    boost::lock_guard<boost::mutex> guard(face_mutex__);
+    Mat frame(height, width, CV_8UC3, (char*)framebuffer, Mat::AUTO_STEP);
     int i;
 
     const static Scalar colors[] = { CV_RGB(0, 0, 255),
@@ -49,18 +86,8 @@ void OpenCVFaceDect::Process(void* framebuffer, int width, int height)
         CV_RGB(255, 255, 0),
         CV_RGB(255, 0, 0),
         CV_RGB(255, 0, 255) };
-    // scale to small picture
-    cvtColor(frame, gray, CV_BGR2GRAY);
-    resize(gray, smallImg, smallImg.size(), 0, 0, INTER_LINEAR);
-    equalizeHist(smallImg, smallImg);
 
-    cascade__.detectMultiScale(smallImg, faces, 1.1,
-        2, 0 | CV_HAAR_SCALE_IMAGE, Size(10, 10), Size(0, 0));
-
-    t = (double)cvGetTickCount() - t;
-    printf("detection time = %g ms\n", t / ((double)cvGetTickFrequency() * 1000.));
-
-    for (std::vector<Rect>::const_iterator r = faces.begin(); r != faces.end(); r++, i++) {
+    for (std::vector<Rect>::const_iterator r = last_face__.begin(); r != last_face__.end(); r++, i++) {
         std::vector<Rect> nestedObjects;
         Point center;
         Scalar color = colors[i % 8];

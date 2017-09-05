@@ -22,6 +22,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
 
+#include <boost/thread.hpp>
+#include <boost/thread/lock_guard.hpp>
+
 class OpenCVFaceDect : public OpenCVEffect {
 public:
     OpenCVFaceDect();
@@ -29,10 +32,20 @@ public:
 
     void Initialize(std::string cascade_path);
     void Process(void* framebuffer, int width, int height);
+    void Draw(void *framebuffer, int width, int height);
+    void Run();
+
+    void Update(std::vector<cv::Rect> &faces);
 
 private:
+    cv::Mat gray__;
     cv::CascadeClassifier cascade__;
+    boost::thread process_thread__;
+    boost::mutex face_mutex__;
+    boost::mutex thread_mutex__;
     double scale__;
+
+    std::vector<cv::Rect> last_face__;
 };
 
 #endif
