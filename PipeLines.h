@@ -5,6 +5,26 @@
 //#define TEST_RTSP
 //#define TEST_CAMERA
 
+/*
+Kernel Patch for wrong color(mppvideodec):
+
+driver/media/platform/rockchip-rga/rga-hw.c
+@@ -73,10 +73,16 @@ rga_get_addr_offset(struct rga_frame *frm, unsigned int x, unsigned int y,
+    lt->y_off = y * frm->stride + x * pixel_width;
+    lt->u_off =
+        frm->width * frm->height + (y / y_div) * uv_stride + x / x_div;
+    lt->v_off = lt->u_off + frm->width * frm->height / uv_factor;
+
++	if(frm->fmt->fourcc == V4L2_PIX_FMT_NV12);
++		lt->u_off = DIV_ROUND_UP(frm->width, 32) *
++			DIV_ROUND_UP(frm->height, 32) +
++			(y / y_div) * uv_stride + x / x_div;
++
+    lb->y_off = lt->y_off + (h - 1) * frm->stride;
+    lb->u_off = lt->u_off + (h / y_div - 1) * uv_stride;
+    lb->v_off = lt->v_off + (h / y_div - 1) * uv_stride;
+*/
+
 #ifndef TEST_CAMERA
 static std::string CreateAppSinkPipeline()
 {
