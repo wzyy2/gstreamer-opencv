@@ -26,7 +26,7 @@ static std::string CreateAppSinkPipeline()
         << LINK
         << "video/x-raw,format=(string)NV12"
         << LINK
-        << "v4l2video0convert output-io-mode=dmabuf capture-io-mode=dmabuf"
+        << "rgaconvert output-io-mode=dmabuf-import capture-io-mode=dmabuf"
         << LINK
         << "video/x-raw,format=BGR,width=(int)1920,height=(int)1080"
         << LINK
@@ -45,7 +45,7 @@ static std::string CreateAppSinkPipeline()
         << LINK
         << "mppvideodec"
         << LINK
-        << "v4l2video0convert output-io-mode=dmabuf capture-io-mode=dmabuf"
+        << "rgaconvert output-io-mode=dmabuf-import capture-io-mode=dmabuf"
         << LINK
         << "video/x-raw,format=(string)BGR,width=(int)1920,height=(int)1080,framerate=(fraction)30/1"
         << LINK
