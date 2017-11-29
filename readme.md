@@ -19,4 +19,4 @@ Assume:
 
 Welcome Comments :-p
 
-http://blog.iotwrt.com/rockchip%20linux/2017/08/23/opencv-gstreamer/
+http://blog.iotwrt.com/media/2017/08/23/opencv-gstreamer/
